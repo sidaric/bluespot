@@ -9,11 +9,28 @@
             <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded border">Dashboard</a>
         </div>
 
-        <div class="rounded border p-6">
-            <div class="text-gray-600 text-sm">
-                (Következő lépésben jön a dinamikus lista/naptár, AJAX és toast.)
-            </div>
-        </div>
+
+
+<div class="rounded border p-4 flex items-center justify-between">
+    <div>
+        <div class="text-sm text-gray-600">Kiválasztott hónap</div>
+        <div class="font-semibold" id="monthLabel">—</div>
     </div>
+
+    <div class="text-right">
+        <div class="text-sm text-gray-600">Havi összes óra</div>
+        <div class="text-xl font-semibold" id="totalHours">—</div>
+    </div>
+</div>
+
+<div class="rounded border">
+    <div class="p-4 border-b font-medium">Bejegyzések</div>
+    <div id="entries" class="divide-y"></div>
+</div>
+
 @vite(['resources/js/time.js'])
+
+
+    </div>
+
 </x-app-layout>
