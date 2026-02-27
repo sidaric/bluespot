@@ -8,6 +8,65 @@
                 <div class="space-y-3">
                     <h1 class="text-2xl font-semibold text-gray-900">Időnyilvántartás</h1>
 
+
+                </div>
+            </div>
+
+            {{-- Month navigation --}}
+            <div class="flex items-center gap-3">
+
+                <button
+                    id="prevMonth"
+                    type="button"
+                    class="h-10 w-10 grid place-items-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition shadow-sm"
+                    aria-label="Előző hónap"
+                    title="Előző hónap"
+                >
+                    {{-- minimal left arrow --}}
+                    <svg viewBox="0 0 24 24" class="w-5 h-5 text-gray-700" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div class="relative">
+                    <input
+                        id="monthInput"
+                        type="text"
+                        inputmode="none"
+                        class="h-10 w-[190px] rounded-lg border border-gray-200 bg-white px-3 pr-10 text-gray-900 shadow-sm cursor-pointer"
+                        placeholder="Válassz hónapot"
+                    />
+                    <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <button
+                    id="nextMonth"
+                    type="button"
+                    class="h-10 w-10 grid place-items-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition shadow-sm"
+                    aria-label="Következő hónap"
+                    title="Következő hónap"
+                >
+                    {{-- minimal right arrow --}}
+                    <svg viewBox="0 0 24 24" class="w-5 h-5 text-gray-700" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div class="ml-auto flex items-center gap-8">
+                    <div class="text-sm text-gray-600">
+                        Kiválasztott időszak:
+                        <span class="font-semibold text-gray-900" id="monthLabel">—</span>
+                    </div>
+
+                    <div class="text-sm text-gray-600">
+                        Havi összes óra:
+                        <span class="font-semibold text-gray-900" id="totalHours">—</span>
+                    </div>
+
                     <div class="flex items-center gap-3">
                         <button
                             id="addEntryBtn"
@@ -19,46 +78,7 @@
                         </button>
                     </div>
                 </div>
-            </div>
 
-            {{-- Month navigation --}}
-            <div class="flex items-center gap-3">
-                <button
-                    id="prevMonth"
-                    type="button"
-                    class="h-10 w-10 grid place-items-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition shadow-sm"
-                    aria-label="Előző hónap"
-                    title="Előző hónap"
-                >◀</button>
-
-                <div class="relative">
-                    <input
-                        id="monthInput"
-                        type="month"
-                        class="h-10 w-[190px] rounded-lg border border-gray-200 bg-white px-3 pr-10 text-gray-900 shadow-sm"
-                    />
-                    <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">⌄</div>
-                </div>
-
-                <button
-                    id="nextMonth"
-                    type="button"
-                    class="h-10 w-10 grid place-items-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition shadow-sm"
-                    aria-label="Következő hónap"
-                    title="Következő hónap"
-                >▶</button>
-
-                <div class="ml-auto flex items-center gap-8">
-                    <div class="text-sm text-gray-600">
-                        Kiválasztott hónap:
-                        <span class="font-semibold text-gray-900" id="monthLabel">—</span>
-                    </div>
-
-                    <div class="text-right">
-                        <div class="text-xs text-gray-500">Havi összes óra</div>
-                        <div class="text-xl font-semibold text-gray-900" id="totalHours">—</div>
-                    </div>
-                </div>
             </div>
 
             {{-- Timesheet --}}
@@ -83,13 +103,13 @@
 
                         <thead class="bg-gray-50 text-sm text-gray-600">
                         <tr class="[&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-medium">
-                            <th class="border-b border-gray-200">Hétfő</th>
-                            <th class="border-b border-gray-200">Kedd</th>
-                            <th class="border-b border-gray-200">Szerda</th>
-                            <th class="border-b border-gray-200">Csütörtök</th>
-                            <th class="border-b border-gray-200">Péntek</th>
-                            <th class="border-b border-gray-200">Összeg</th>
-                            <th class="border-b border-gray-200">Hét</th>
+                            <th class="border-b border-gray-200 text-[12px] text-[#202224]">Hétfő</th>
+                            <th class="border-b border-gray-200 text-[12px] text-[#202224]">Kedd</th>
+                            <th class="border-b border-gray-200 text-[12px] text-[#202224]">Szerda</th>
+                            <th class="border-b border-gray-200 text-[12px] text-[#202224]">Csütörtök</th>
+                            <th class="border-b border-gray-200 text-[12px] text-[#202224]">Péntek</th>
+                            <th class="border-b border-gray-200 text-[12px] text-[#202224]">Összeg</th>
+                            <th class="border-b border-gray-200 text-[12px] text-[#202224]">Hét</th>
                         </tr>
                         </thead>
 

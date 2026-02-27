@@ -3,18 +3,22 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
+// 1. A főoldal (localhost/) mostantól egyből a /time-ra dob
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('time.index');
 });
 
+// 2. A dashboard-ot is átirányítjuk, ha esetleg valahol még szerepelne a kódodban a linkje
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return redirect()->route('time.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Itt a fő munkafelületünk
     Route::view('/time', 'time.index')->name('time.index');
 });
 
