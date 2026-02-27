@@ -15,4 +15,5 @@
             </div>
         </div>
     </div>
+@vite(['resources/js/time.js'])
 </x-app-layout>
