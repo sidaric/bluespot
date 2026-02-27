@@ -61,11 +61,27 @@ function render(data) {
   }
 }
 
-async function loadCurrentMonth() {
-  const today = new Date();
-  const month =
-    today.getFullYear() + "-" +
-    String(today.getMonth() + 1).padStart(2, "0");
+
+let currentMonth = null;
+
+function getMonthNow() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+}
+
+function shiftMonth(month, delta) {
+  const [y, m] = month.split("-").map(Number);
+  const d = new Date(y, m - 1, 1);
+  d.setMonth(d.getMonth() + delta);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+}
+
+async function loadMonth(month) {
+  currentMonth = month;
+
+  // input + label sync
+  const monthInput = document.getElementById("monthInput");
+  if (monthInput) monthInput.value = month;
 
   const response = await fetch(`/api/time-entries?month=${encodeURIComponent(month)}`, {
     headers: { "Accept": "application/json" },
@@ -76,4 +92,96 @@ async function loadCurrentMonth() {
   render(data);
 }
 
-loadCurrentMonth().catch((e) => console.error(e));
+const initialMonth = getMonthNow();
+loadMonth(initialMonth).catch((e) => console.error(e));
+
+
+document.getElementById("prevMonth").onclick = () => loadMonth(shiftMonth(currentMonth, -1));
+document.getElementById("nextMonth").onclick = () => loadMonth(shiftMonth(currentMonth, +1));
+
+document.getElementById("monthInput").addEventListener("change", (e) => {
+  if (e.target.value) loadMonth(e.target.value);
+});
+
+
+const modal = document.getElementById("entryModal");
+const backdrop = document.getElementById("modalBackdrop");
+
+document.getElementById("addEntryBtn").onclick = () => {
+
+    modal.classList.remove("hidden");
+    backdrop.classList.remove("hidden");
+
+};
+
+document.getElementById("cancelBtn").onclick = () => {
+
+    modal.classList.add("hidden");
+    backdrop.classList.add("hidden");
+
+};
+
+function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  return meta ? meta.getAttribute("content") : "";
+}
+
+function showToast(message, isError = false) {
+  const el = document.getElementById("toast");
+  el.textContent = message;
+
+  el.classList.remove("hidden");
+  el.style.backgroundColor = isError ? "#b91c1c" : "#111827";
+
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => {
+    el.classList.add("hidden");
+  }, 2500);
+}
+
+function hoursToMinutes(hours) {
+  return Math.round(parseFloat(hours) * 60);
+}
+
+function closeModal() {
+  modal.classList.add("hidden");
+  backdrop.classList.add("hidden");
+}
+
+document.getElementById("saveBtn").onclick = async () => {
+  const entry_date = document.getElementById("entryDate").value;
+  const hours = document.getElementById("entryHours").value;
+  const description = document.getElementById("entryDescription").value;
+
+  try {
+    const response = await fetch("/api/time-entries", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": getCsrfToken(),
+      },
+      credentials: "same-origin",
+      body: JSON.stringify({
+        entry_date,
+        minutes: hoursToMinutes(hours),
+        description,
+      }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data?.message ?? "Mentés sikertelen.");
+    }
+
+    showToast(data?.message ?? "Sikeres mentés.");
+    closeModal();
+
+    // Frissítjük a listát
+    await loadMonth(currentMonth);
+
+  } catch (e) {
+    showToast(e.message ?? "Hiba történt.", true);
+  }
+};
