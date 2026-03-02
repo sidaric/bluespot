@@ -52,7 +52,6 @@
                                 class="w-full h-14 px-5 pr-14 rounded-2xl bg-gray-100 border border-transparent focus:border-gray-200 focus:ring-2 focus:ring-gray-900/10 outline-none text-base"
                             />
 
-                            {{-- Toggle visibility --}}
                             <button
                                 type="button"
                                 id="togglePassword"
@@ -106,7 +105,6 @@
 
     @push('scripts')
         <script>
-            // Password visibility toggle
             (function () {
                 const btn = document.getElementById('togglePassword');
                 const input = document.getElementById('password');

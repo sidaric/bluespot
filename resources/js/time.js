@@ -31,7 +31,7 @@ function showToast(message, isError = false) {
     const errorIcon = `<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
     const closeIcon = `<svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
 
-    // Tartalom beállítása (innerHTML-t használunk a korábbi textContent helyett)
+    // Tartalom beállítása
     elToast.innerHTML = `
         <div class="flex items-center gap-4 min-w-[300px] w-full">
             <div class="flex-shrink-0 bg-white/20 p-1.5 rounded-full">${isError ? errorIcon : successIcon}</div>
@@ -213,8 +213,8 @@ function render(data) {
         }
 
         html += `<tr>${dayCellsHtml}
-            <td class="border border-gray-100 bg-gray-50/30 p-4 align-middle font-bold text-gray-900 text-center">${minutesToHoursString(weekTotalMinutes)} óra</td>
-            <td class="border border-gray-100 p-4 align-middle text-center font-bold text-gray-300 text-xs">${weekNumber}</td>
+            <td class="border-b border-[#EAECF0] bg-gray-50/30 p-4 align-middle font-bold text-[#202224] text-[14px] text-center">${minutesToHoursString(weekTotalMinutes)} óra</td>
+            <td class="border-b border-[#EAECF0] p-4 align-middle text-center font-bold text-[#202224] text-[14px]">${weekNumber}</td>
         </tr>`;
         weekStart = addDays(weekStart, 7);
     }

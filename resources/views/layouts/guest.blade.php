@@ -13,12 +13,12 @@
 <body class="antialiased bg-white text-gray-900" x-data="{ open: false }">
     <div class="min-h-screen">
 
-        {{-- Top header - Full width konténerrel --}}
+        {{-- Top header --}}
         <header class="bg-white border-b border-indigo-100/70 sticky top-0 z-50">
-            <div class="w-full px-4 sm:px-6 lg:px-8"> {{-- Full width konténer --}}
-                <div class="flex justify-between h-20"> {{-- Fix 20-as magasság --}}
+            <div class="w-full px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-20">
                     
-                    {{-- Logo szekció --}}
+                    {{-- Logo --}}
                     <div class="flex">
                         <div class="shrink-0 flex items-center">
                             <a href="{{ url('/') }}" class="flex items-center">

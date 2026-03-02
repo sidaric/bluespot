@@ -10,12 +10,12 @@
                     <p class="text-sm text-gray-500 mt-1">Kövesd nyomon a ledolgozott óráidat.</p>
                 </div>
                 
-                {{-- Új óra gomb - 16px kerekítés --}}
+                {{-- Új óra gomb --}}
                 <div class="flex justify-end">
                     <button
                         id="addEntryBtn"
                         type="button"
-                        class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#2B2A2A] text-white font-bold hover:bg-black transition-all shadow-lg shadow-gray-200 active:scale-95"
+                        class="inline-flex items-center gap-2 px-6 py-3.5 rounded-[8px] bg-[#2B2A2A] text-white font-bold hover:bg-black transition-all shadow-lg shadow-gray-200 active:scale-95"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
@@ -81,20 +81,23 @@
 
             {{-- Táblázat Konténer --}}
             <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 py-6 px-1">
                     <table class="min-w-[1000px] w-full table-fixed border-separate border-spacing-0">
-                        <thead>
-                            <tr class="bg-[#EAECF0] [&>th]:px-6 [&>th]:py-4 [&>th]:text-left">
-                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Hétfő</th>
-                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Kedd</th>
-                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Szerda</th>
-                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Csütörtök</th>
-                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Péntek</th>
-                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[120px]">Összeg</th>
-                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[70px] text-center">Hét</th>
-                            </tr>
-                        </thead>
-
+                            <thead>
+                                <tr class="bg-[#EAECF0] [&>th]:px-6 [&>th]:py-4 [&>th]:text-left">
+                                    {{-- Bal oldal: fent és lent kerekítve --}}
+                                    <th class="rounded-tl-[8px] rounded-bl-[8px] border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Hétfő</th>
+                                    
+                                    <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Kedd</th>
+                                    <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Szerda</th>
+                                    <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Csütörtök</th>
+                                    <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Péntek</th>
+                                    <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[120px]">Összeg</th>
+                                    
+                                    {{-- Jobb oldal: fent és lent kerekítve --}}
+                                    <th class="rounded-tr-[8px] rounded-br-[8px] border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[70px] text-center">Hét</th>
+                                </tr>
+                            </thead>
                         <tbody id="timesheetBody" class="text-sm text-gray-800">
                             <tr>
                                 <td class="px-6 py-24 text-center text-gray-400" colspan="7">
