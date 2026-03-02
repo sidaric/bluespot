@@ -3,10 +3,6 @@ import "flatpickr/dist/flatpickr.min.css";
 import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect/index";
 import "flatpickr/dist/plugins/monthSelect/style.css";
 
-/**
- * Time Tracker UI - Teljes Verzió
- */
-
 // ---- Segédfüggvények ----
 function minutesToHoursString(totalMinutes) {
     const hours = (totalMinutes || 0) / 60;
@@ -26,20 +22,52 @@ function getCsrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
 }
 
+
 function showToast(message, isError = false) {
     const elToast = document.getElementById("toast");
     if (!elToast) return;
-    elToast.textContent = message || (isError ? "Hiba történt." : "Sikeres művelet.");
+
+    const successIcon = `<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`;
+    const errorIcon = `<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
+    const closeIcon = `<svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
+
+    // Tartalom beállítása (innerHTML-t használunk a korábbi textContent helyett)
+    elToast.innerHTML = `
+        <div class="flex items-center gap-4 min-w-[300px] w-full">
+            <div class="flex-shrink-0 bg-white/20 p-1.5 rounded-full">${isError ? errorIcon : successIcon}</div>
+            <div class="flex-grow font-bold text-white text-[15px]">${message}</div>
+            <button id="closeToastBtn" class="group p-1 -mr-1 outline-none">
+                ${closeIcon}
+            </button>
+        </div>
+    `;
+
+    // Stílusok és megjelenítés
     elToast.classList.remove("hidden");
-    elToast.style.backgroundColor = isError ? "#b91c1c" : "#111827";
+    elToast.style.display = "flex";
+    elToast.style.backgroundColor = isError ? "#DC2626" : "#22C55E"; 
+
+    // Bezárás gomb funkció (közvetlen eseménykezelővel)
+    const btnClose = elToast.querySelector("#closeToastBtn");
+    if (btnClose) {
+        btnClose.onclick = () => {
+            elToast.classList.add("hidden");
+            elToast.style.display = "none";
+        };
+    }
+
+    // Automatikus eltűnés (4 másodperc után)
     clearTimeout(window.__toastTimer);
-    window.__toastTimer = setTimeout(() => { elToast.classList.add("hidden"); }, 2500);
+    window.__toastTimer = setTimeout(() => { 
+        elToast.classList.add("hidden");
+        elToast.style.display = "none";
+    }, 4000);
 }
+
 
 function hoursToMinutes(hours) {
     const val = Number(hours);
-    if (!Number.isFinite(val) || val <= 0) return 0;
-    return Math.round(val * 60);
+    return (!Number.isFinite(val) || val <= 0) ? 0 : Math.round(val * 60);
 }
 
 function pad2(n) { return String(n).padStart(2, "0"); }
@@ -54,8 +82,7 @@ function parseISODate(yyyy_mm_dd) {
 
 function getISODayIndexMon0(date) {
     const day = date.getDay();
-    const iso = day === 0 ? 7 : day;
-    return iso - 1;
+    return (day === 0 ? 7 : day) - 1;
 }
 
 function getISOWeekNumber(date) {
@@ -68,8 +95,7 @@ function getISOWeekNumber(date) {
 
 function getWeekStartMonday(date) {
     const d = new Date(date.getTime());
-    const mon0 = getISODayIndexMon0(d);
-    d.setDate(d.getDate() - mon0);
+    d.setDate(d.getDate() - getISODayIndexMon0(d));
     d.setHours(0, 0, 0, 0);
     return d;
 }
@@ -100,8 +126,7 @@ function getMonthBounds(month) {
     const [y, m] = String(month).split("-").map(Number);
     const first = new Date(y, (m || 1) - 1, 1);
     const last = new Date(y, (m || 1), 0);
-    first.setHours(0, 0, 0, 0);
-    last.setHours(0, 0, 0, 0);
+    first.setHours(0, 0, 0, 0); last.setHours(0, 0, 0, 0);
     return { y, m, first, last };
 }
 
@@ -121,17 +146,13 @@ function firstWeekStartForMonth(firstDay) {
 // ---- State ----
 let currentMonth = null;
 let lastEntriesById = new Map();
-let fpDate = null;
-let fpMonth = null;
+let fpDate = null, fpMonth = null;
 
 const el = (id) => document.getElementById(id);
 const openModal = () => { el("entryModal")?.classList.remove("hidden"); el("modalBackdrop")?.classList.remove("hidden"); };
 const closeModal = () => { el("entryModal")?.classList.add("hidden"); el("modalBackdrop")?.classList.add("hidden"); };
 
-const monthNamesHU = [
-    "Január", "Február", "Március", "Április", "Május", "Június",
-    "Július", "Augusztus", "Szeptember", "Október", "November", "December"
-];
+const monthNamesHU = ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"];
 
 // ---- Render ----
 function render(data) {
@@ -146,21 +167,13 @@ function render(data) {
     });
 
     const { y, m, first, last } = getMonthBounds(month);
-
-    // Összesítés
     let monthTotalMinutes = 0;
     entriesByDate.forEach((arr, dateKey) => {
         const d = parseISODate(dateKey);
-        if (sameMonth(d, y, m) && !isWeekendDate(d)) {
-            arr.forEach(e => monthTotalMinutes += Number(e.minutes || 0));
-        }
+        if (sameMonth(d, y, m) && !isWeekendDate(d)) arr.forEach(e => monthTotalMinutes += Number(e.minutes || 0));
     });
 
-    if (el("monthLabel")) {
-    // A hónap száma (m) 1 és 12 között van, a tömb indexe 0-11
-    const monthName = monthNamesHU[m - 1]; 
-    el("monthLabel").textContent = `${y}. ${monthName}`;
-}
+    if (el("monthLabel")) el("monthLabel").textContent = `${y}. ${monthNamesHU[m - 1]}`;
     if (el("totalHours")) el("totalHours").textContent = `${minutesToHoursString(monthTotalMinutes)} óra`;
 
     const tbody = el("timesheetBody");
@@ -172,54 +185,37 @@ function render(data) {
 
     while (weekStart <= tableEndWeekStart) {
         const weekNumber = getISOWeekNumber(weekStart);
-        let weekTotalMinutes = 0;
-        let dayCellsHtml = "";
+        let weekTotalMinutes = 0, dayCellsHtml = "";
 
         for (let i = 0; i < 5; i++) {
             const dayDate = addDays(weekStart, i);
             const dayIso = toISODate(dayDate);
             const inMonth = sameMonth(dayDate, y, m);
             const dayEntries = inMonth ? (entriesByDate.get(dayIso) || []) : [];
-
             if (inMonth) dayEntries.forEach(e => weekTotalMinutes += Number(e.minutes || 0));
 
-          // A kártyák (gombok) stílusa
-          const entriesHtml = dayEntries.map(e => `
+            const entriesHtml = dayEntries.map(e => `
               <button type="button" data-entry-id="${e.id}" 
-                  class="w-full text-left rounded-lg border border-gray-200 bg-white p-2 mb-1 hover:bg-gray-50 transition block overflow-hidden">
-                  <div class="font-bold text-[#202224] text-[14px]">${formatEntryHours(e.minutes)}</div>
-                  <div class="text-[14px] text-[#898989] truncate">${escapeHtml(e.description || 'Nincs leírás')}</div>
+                  class="w-full text-left border-b border-[#EAECF0] bg-white p-3 hover:bg-gray-50 transition-all block overflow-hidden group">
+                  <div class="font-bold text-gray-900 text-[15px] group-hover:text-[#3CA8F0] transition-colors">${formatEntryHours(e.minutes)}</div>
+                  <div class="text-[13px] text-gray-500 truncate mt-0.5 font-medium">${escapeHtml(e.description || 'Nincs leírás')}</div>
               </button>
-          `).join("");
+            `).join("");
 
-          dayCellsHtml += `
-              <td class="border border-gray-200 py-6 px-2 align-top h-1 relative ${inMonth ? 'bg-white' : 'bg-gray-50'}" style="vertical-align: top !important;">
-                  <div class="block w-full min-h-[70px]">
-                      
-                      <div class="w-full">
-                          ${entriesHtml}
-                      </div>
-
-                      <div class="absolute bottom-1 right-1 text-xs ${inMonth ? 'text-gray-400' : 'text-gray-300'} font-medium pointer-events-none bg-inherit px-1">
-                          ${formatCellDateMMDD(dayDate)}
-                      </div>
-
-                  </div>
-              </td>
-          `;
+            dayCellsHtml += `
+                <td class="border border-gray-100 py-8 px-3 align-top relative ${inMonth ? 'bg-white' : 'bg-gray-50/50'}">
+                    <div class="min-h-[80px]">${entriesHtml}</div>
+                    <div class="absolute bottom-2 right-2 text-[11px] font-bold ${inMonth ? 'text-gray-400' : 'text-gray-300'} pointer-events-none uppercase tracking-tighter">
+                        ${formatCellDateMMDD(dayDate)}
+                    </div>
+                </td>
+            `;
         }
 
-        html += `
-            <tr>
-                ${dayCellsHtml}
-                <td class="border border-gray-200 bg-gray-50 p-2 align-middle text-left font-extrabold text-[#202224]">
-                    ${minutesToHoursString(weekTotalMinutes)} óra
-                </td>
-                <td class="border border-gray-200 p-2 align-middle text-left font-extrabold text-[#202224]">
-                    ${weekNumber}
-                </td>
-            </tr>
-        `;
+        html += `<tr>${dayCellsHtml}
+            <td class="border border-gray-100 bg-gray-50/30 p-4 align-middle font-bold text-gray-900 text-center">${minutesToHoursString(weekTotalMinutes)} óra</td>
+            <td class="border border-gray-100 p-4 align-middle text-center font-bold text-gray-300 text-xs">${weekNumber}</td>
+        </tr>`;
         weekStart = addDays(weekStart, 7);
     }
     tbody.innerHTML = html;
@@ -232,34 +228,18 @@ function render(data) {
     });
 }
 
-// ---- API Funkciók ----
+// ---- API & Inits ----
 async function loadMonth(month) {
     currentMonth = month;
-    
-    // Szinkronizáljuk a Flatpickr-t a belső állapottal (currentMonth)
-    // A false paraméter fontos, hogy ne triggereljen egy újabb onChange eseményt (végtelen ciklus elkerülése)
-    if (fpMonth) {
-        fpMonth.setDate(month, false);
-    }
-
+    if (fpMonth) fpMonth.setDate(month, false);
     try {
-        const response = await fetch(`/api/time-entries?month=${encodeURIComponent(month)}`, {
-            headers: { Accept: "application/json" }
-        });
-        const data = await response.json();
-        render(data);
+        const res = await fetch(`/api/time-entries?month=${encodeURIComponent(month)}`, { headers: { Accept: "application/json" } });
+        render(await res.json());
     } catch (e) { showToast("Hiba a betöltéskor", true); }
 }
 
-
-
-// ---- Flatpickr Initek ----
 function initFlatpickrs() {
-    fpDate = flatpickr("#entryDate", { 
-        dateFormat: "Y-m-d", 
-        disable: [d => (d.getDay() === 0 || d.getDay() === 6)] 
-    });
-    
+    fpDate = flatpickr("#entryDate", { dateFormat: "Y-m-d", disable: [d => (d.getDay() === 0 || d.getDay() === 6)] });
     fpMonth = flatpickr("#monthInput", {
         plugins: [new monthSelectPlugin({ shorthand: false, dateFormat: "Y-m", altFormat: "Y. F" })],
         defaultDate: currentMonth || getMonthNow(),
@@ -267,16 +247,12 @@ function initFlatpickrs() {
     });
 }
 
-// ---- Modal Vezérlés ----
 function openCreate() {
     el("modalTitle").textContent = "Új bejegyzés";
-    el("entryId").value = "";
-    el("entryHours").value = "1";
-    el("entryDescription").value = "";
+    el("entryId").value = ""; el("entryHours").value = "1"; el("entryDescription").value = "";
     let d = new Date(); while(isWeekendDate(d)) d = addDays(d, 1);
     if(fpDate) fpDate.setDate(d);
-    el("deleteBtn")?.classList.add("hidden");
-    openModal();
+    el("deleteBtn")?.classList.add("hidden"); openModal();
 }
 
 function openEdit(entry) {
@@ -285,27 +261,19 @@ function openEdit(entry) {
     if(fpDate) fpDate.setDate(entry.entry_date);
     el("entryHours").value = entry.minutes / 60;
     el("entryDescription").value = entry.description || "";
-    el("deleteBtn")?.classList.remove("hidden");
-    openModal();
+    el("deleteBtn")?.classList.remove("hidden"); openModal();
 }
 
-// ---- Események Huzalozása ----
 function wireEvents() {
     el("addEntryBtn")?.addEventListener("click", openCreate);
     el("cancelBtn")?.addEventListener("click", closeModal);
     el("modalBackdrop")?.addEventListener("click", closeModal);
-
     el("prevMonth")?.addEventListener("click", () => loadMonth(shiftMonth(currentMonth, -1)));
     el("nextMonth")?.addEventListener("click", () => loadMonth(shiftMonth(currentMonth, 1)));
 
     el("saveBtn")?.addEventListener("click", async () => {
         const id = el("entryId").value;
-        const payload = {
-            entry_date: el("entryDate").value,
-            minutes: hoursToMinutes(el("entryHours").value),
-            description: el("entryDescription").value
-        };
-
+        const payload = { entry_date: el("entryDate").value, minutes: hoursToMinutes(el("entryHours").value), description: el("entryDescription").value };
         try {
             const res = await fetch(id ? `/api/time-entries/${id}` : "/api/time-entries", {
                 method: id ? "PUT" : "POST",
@@ -313,31 +281,23 @@ function wireEvents() {
                 body: JSON.stringify(payload)
             });
             if (!res.ok) throw new Error();
-            showToast("Mentve");
-            closeModal();
-            loadMonth(currentMonth);
-        } catch (e) { showToast("Mentési hiba", true); }
+            showToast(id ? "Sikeresen módosítva!" : "Az adatok mentése sikeres!", false);
+            closeModal(); loadMonth(currentMonth);
+        } catch (e) { showToast("Az adatok mentése sikertelen!", true); }
     });
 
     el("deleteBtn")?.addEventListener("click", async () => {
         if (!confirm("Biztosan törlöd?")) return;
         try {
-            const res = await fetch(`/api/time-entries/${el("entryId").value}`, {
-                method: "DELETE",
-                headers: { "X-CSRF-TOKEN": getCsrfToken() }
-            });
+            const res = await fetch(`/api/time-entries/${el("entryId").value}`, { method: "DELETE", headers: { "X-CSRF-TOKEN": getCsrfToken() } });
             if (!res.ok) throw new Error();
-            showToast("Törölve");
-            closeModal();
-            loadMonth(currentMonth);
+            showToast("Bejegyzés törölve", false);
+            closeModal(); loadMonth(currentMonth);
         } catch (e) { showToast("Törlési hiba", true); }
     });
 }
 
-// ---- Start ----
 document.addEventListener("DOMContentLoaded", () => {
     currentMonth = getMonthNow();
-    initFlatpickrs();
-    wireEvents();
-    loadMonth(currentMonth);
+    initFlatpickrs(); wireEvents(); loadMonth(currentMonth);
 });
