@@ -51,6 +51,7 @@ A script:
 Futtatás:
 
 chmod +x install-and-run.sh
+
 ./install-and-run.sh
 
 Az alkalmazás ezután elérhető:
