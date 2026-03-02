@@ -19,7 +19,8 @@
 
                 <form method="POST" action="{{ route('register') }}" class="space-y-6">
                     @csrf
-
+                    {{-- Rejtett név mező a backend validáció miatt --}}
+                    <input type="hidden" name="name" value="Felhasználó">
                     {{-- Email --}}
                     <div>
                         <input
