@@ -196,14 +196,14 @@ function render(data) {
 
             const entriesHtml = dayEntries.map(e => `
               <button type="button" data-entry-id="${e.id}" 
-                  class="w-full text-left border-b border-[#EAECF0] bg-white p-3 hover:bg-gray-50 transition-all block overflow-hidden group">
+                  class="w-full text-left bg-white p-3 hover:bg-gray-50 transition-all block overflow-hidden group">
                   <div class="font-bold text-gray-900 text-[15px] group-hover:text-[#3CA8F0] transition-colors">${formatEntryHours(e.minutes)}</div>
                   <div class="text-[13px] text-gray-500 truncate mt-0.5 font-medium">${escapeHtml(e.description || 'Nincs leírás')}</div>
               </button>
             `).join("");
 
             dayCellsHtml += `
-                <td class="border border-gray-100 py-8 px-3 align-top relative ${inMonth ? 'bg-white' : 'bg-gray-50/50'}">
+                <td class="border-b border-[#EAECF0] py-8 px-3 align-top relative ${inMonth ? 'bg-white' : 'bg-gray-50/50'}">
                     <div class="min-h-[80px]">${entriesHtml}</div>
                     <div class="absolute bottom-2 right-2 text-[11px] font-bold ${inMonth ? 'text-gray-400' : 'text-gray-300'} pointer-events-none uppercase tracking-tighter">
                         ${formatCellDateMMDD(dayDate)}

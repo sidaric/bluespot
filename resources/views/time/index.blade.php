@@ -84,14 +84,14 @@
                 <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200">
                     <table class="min-w-[1000px] w-full table-fixed border-separate border-spacing-0">
                         <thead>
-                            <tr class="bg-gray-50/50 [&>th]:px-6 [&>th]:py-4 [&>th]:text-left">
-                                <th class="border-b border-gray-100 text-[11px] font-black text-gray-400 uppercase tracking-widest w-[16%]">Hétfő</th>
-                                <th class="border-b border-gray-100 text-[11px] font-black text-gray-400 uppercase tracking-widest w-[16%]">Kedd</th>
-                                <th class="border-b border-gray-100 text-[11px] font-black text-gray-400 uppercase tracking-widest w-[16%]">Szerda</th>
-                                <th class="border-b border-gray-100 text-[11px] font-black text-gray-400 uppercase tracking-widest w-[16%]">Csütörtök</th>
-                                <th class="border-b border-gray-100 text-[11px] font-black text-gray-400 uppercase tracking-widest w-[16%]">Péntek</th>
-                                <th class="border-b border-gray-100 text-[11px] font-black text-gray-900 uppercase tracking-widest w-[120px]">Összeg</th>
-                                <th class="border-b border-gray-100 text-[11px] font-black text-gray-300 uppercase tracking-widest w-[70px] text-center">Hét</th>
+                            <tr class="bg-[#EAECF0] [&>th]:px-6 [&>th]:py-4 [&>th]:text-left">
+                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Hétfő</th>
+                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Kedd</th>
+                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Szerda</th>
+                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Csütörtök</th>
+                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[16%]">Péntek</th>
+                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[120px]">Összeg</th>
+                                <th class="border-b border-gray-100 text-[12px] text-[#202224] tracking-widest w-[70px] text-center">Hét</th>
                             </tr>
                         </thead>
 

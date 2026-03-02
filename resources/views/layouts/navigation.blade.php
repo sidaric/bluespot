@@ -12,26 +12,26 @@
 
             {{-- Desktop Menu --}}
             <div class="hidden md:flex md:items-center md:ms-6">
-                <div class="flex items-center gap-6">
+                <div class="flex items-center gap-4">
+                    {{-- Felhasználói rész: Avatar + Email --}}
                     <div class="flex items-center gap-3">
-                        <div class="text-right hidden lg:block">
-                            <div class="text-sm font-bold text-gray-900 leading-none">
-                                {{ Auth::user()->name ?? 'Felhasználó' }}
-                            </div>
-                            <div class="text-[11px] text-gray-400 font-medium mt-1">
-                                {{ Auth::user()->email }}
-                            </div>
-                        </div>
-                        
-                        <div class="w-10 h-10 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 shadow-sm">
-                            <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        {{-- Avatar - Teljes kör alakú --}}
+                        <div class="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 shadow-sm overflow-hidden">
+                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 2a5 5 0 00-5 5c0 2.761 2.239 5 5 5s5-2.239 5-5a5 5 0 00-5-5zM3 18a7 7 0 1114 0H3z" clip-rule="evenodd"/>
                             </svg>
                         </div>
+                        
+                        {{-- Email cím --}}
+                        <div class="text-sm font-medium text-gray-500">
+                            {{ Auth::user()->email }}
+                        </div>
                     </div>
 
-                    <div class="h-8 w-[1px] bg-gray-100"></div>
+                    {{-- Elválasztó vonal --}}
+                    <div class="h-8 w-[1px] bg-gray-100 mx-1"></div>
 
+                    {{-- Kijelentkezés gomb --}}
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="p-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all duration-200 group flex items-center justify-center" title="Kijelentkezés">
@@ -44,7 +44,7 @@
                 </div>
             </div>
 
-            {{-- Hamburger Gomb --}}
+            {{-- Hamburger Gomb (Mobil) --}}
             <div class="-me-2 flex items-center md:hidden">
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2.5 rounded-xl text-gray-900 hover:bg-gray-50 transition-all focus:outline-none">
                     <svg class="h-8 w-8" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -56,7 +56,7 @@
         </div>
     </div>
 
-    {{-- Mobil Menü Tartalom (Ez hiányzott!) --}}
+    {{-- Mobil Menü --}}
     <div x-show="open" 
          x-cloak
          x-transition:enter="transition ease-out duration-200"
@@ -65,8 +65,8 @@
          class="md:hidden bg-white border-t border-gray-100 shadow-xl relative z-40">
         
         <div class="pt-6 pb-8 px-6">
-            <div class="flex items-center gap-4 mb-8 p-5 bg-gray-50 rounded-3xl border border-gray-100">
-                <div class="w-14 h-14 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 shadow-sm">
+            <div class="flex items-center gap-4 mb-8 p-5 bg-gray-50 rounded-xl border border-gray-100">
+                <div class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 shadow-sm">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
@@ -78,10 +78,9 @@
             </div>
 
             <div class="grid grid-cols-1 gap-3">
-
                 <form method="POST" action="{{ route('logout') }}" class="w-full">
                     @csrf
-                    <button type="submit" class="w-full rounded-2xl py-4 px-6 bg-red-50 text-red-600 font-bold border border-red-100 flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                    <button type="submit" class="w-full rounded-xl py-4 px-6 bg-red-50 text-red-600 font-bold border border-red-100 flex items-center justify-center gap-2 active:scale-95 transition-transform">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16 17 21 12 16 7"></polyline>
