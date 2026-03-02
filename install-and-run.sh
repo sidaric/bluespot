@@ -4,7 +4,8 @@ set -euo pipefail
 # ------------------------------------------------------------
 # Auto installer + runner (Ubuntu/WSL) for Laravel + Vite + SQLite
 # - Installs missing deps via apt (requires sudo)
-# - Sets up .env, SQLite, migrations
+# - Ensures Node.js >= 20 (NodeSource)
+# - Sets up .env, SQLite, runs migrations
 # - Starts php artisan serve + npm run dev
 # ------------------------------------------------------------
 
@@ -17,27 +18,6 @@ err()  { echo -e "\033[1;31m[ERR ]\033[0m $*"; }
 
 has_cmd() { command -v "$1" >/dev/null 2>&1; }
 
-need_sudo=false
-ensure_sudo() {
-  if [[ "$need_sudo" == true ]]; then
-    if ! has_cmd sudo; then
-      err "sudo is required but not available. Install sudo or run in an environment with sudo."
-      exit 1
-    fi
-    # Ask for sudo upfront
-    sudo -v
-  fi
-}
-
-apt_install() {
-  local pkgs=("$@")
-  need_sudo=true
-  ensure_sudo
-  info "Installing via apt: ${pkgs[*]}"
-  sudo apt-get update -y
-  sudo apt-get install -y "${pkgs[@]}"
-}
-
 cleanup() {
   info "Stopping dev processes..."
   if [[ -n "${PHP_PID:-}" ]] && kill -0 "$PHP_PID" >/dev/null 2>&1; then kill "$PHP_PID" >/dev/null 2>&1 || true; fi
@@ -45,8 +25,67 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+require_sudo() {
+  if ! has_cmd sudo; then
+    err "sudo is required for auto-install. Please install sudo or run in an environment with sudo."
+    exit 1
+  fi
+  sudo -v
+}
+
+apt_install() {
+  require_sudo
+  sudo apt-get update -y
+  sudo apt-get install -y "$@"
+}
+
+ensure_node_20() {
+  if has_cmd node; then
+    local major
+    major="$(node -v | sed 's/^v//' | cut -d. -f1 || echo 0)"
+    if [[ "${major:-0}" -ge 20 ]]; then
+      return 0
+    fi
+    warn "Node.js is installed but too old: $(node -v). Upgrading to Node 20..."
+  else
+    info "Node.js not found. Installing Node 20..."
+  fi
+
+  require_sudo
+  # NodeSource setup for Node 20
+  if ! has_cmd curl; then
+    apt_install curl
+  fi
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+
+  if ! has_cmd node; then
+    err "Node install failed."
+    exit 1
+  fi
+
+  local major_after
+  major_after="$(node -v | sed 's/^v//' | cut -d. -f1 || echo 0)"
+  if [[ "${major_after:-0}" -lt 20 ]]; then
+    err "Node version is still < 20 after install: $(node -v)"
+    exit 1
+  fi
+}
+
+set_env_kv() {
+  # set_env_kv KEY VALUE
+  local key="$1"
+  local value="$2"
+  if grep -qE "^${key}=" .env; then
+    # use | delimiter to avoid escaping slashes
+    sed -i "s|^${key}=.*|${key}=${value}|" .env
+  else
+    echo "${key}=${value}" >> .env
+  fi
+}
+
 # ------------------------
-# 0) Sanity checks
+# 0) Sanity check
 # ------------------------
 if [[ ! -f artisan ]]; then
   err "artisan not found. Run this script from the Laravel project root."
@@ -54,50 +93,42 @@ if [[ ! -f artisan ]]; then
 fi
 
 # ------------------------
-# 1) Install missing system dependencies
+# 1) System dependencies
 # ------------------------
 info "Checking system dependencies..."
 
-# curl + git often needed
-missing_pkgs=()
-if ! has_cmd curl; then missing_pkgs+=("curl"); fi
-if ! has_cmd git; then missing_pkgs+=("git"); fi
-if ((${#missing_pkgs[@]})); then
-  apt_install "${missing_pkgs[@]}"
+if ! has_cmd git || ! has_cmd unzip || ! has_cmd curl; then
+  info "Installing base tools (git, unzip, curl)..."
+  apt_install git unzip curl
 fi
 
-# PHP + extensions for Laravel
-# (sqlite + mbstring + xml + curl are common needs)
 if ! has_cmd php; then
-  apt_install php php-cli php-mbstring php-xml php-curl php-sqlite3 unzip
+  info "Installing PHP + extensions..."
+  apt_install php php-cli php-mbstring php-xml php-curl php-sqlite3
 else
-  # Ensure required extensions exist (best-effort)
-  # If missing, install them.
-  ext_missing=()
-  php -m | grep -qi mbstring || ext_missing+=("php-mbstring")
-  php -m | grep -qi xml       || ext_missing+=("php-xml")
-  php -m | grep -qi curl      || ext_missing+=("php-curl")
-  php -m | grep -qi sqlite3   || ext_missing+=("php-sqlite3")
-  if ((${#ext_missing[@]})); then
-    apt_install "${ext_missing[@]}"
+  # Best-effort: ensure extensions
+  missing_ext=()
+  php -m | grep -qi mbstring || missing_ext+=("php-mbstring")
+  php -m | grep -qi xml       || missing_ext+=("php-xml")
+  php -m | grep -qi curl      || missing_ext+=("php-curl")
+  php -m | grep -qi sqlite3   || missing_ext+=("php-sqlite3")
+  if ((${#missing_ext[@]})); then
+    info "Installing missing PHP extensions: ${missing_ext[*]}"
+    apt_install "${missing_ext[@]}"
   fi
 fi
 
-# Composer
 if ! has_cmd composer; then
+  info "Installing Composer..."
   apt_install composer
 fi
 
-# Node + npm
-if ! has_cmd node || ! has_cmd npm; then
-  apt_install nodejs npm
-fi
+ensure_node_20
 
-# Version hint (optional)
-NODE_MAJOR="$(node -v 2>/dev/null | sed 's/v//' | cut -d. -f1 || echo 0)"
-if [[ "${NODE_MAJOR:-0}" -lt 18 ]]; then
-  warn "Your Node.js version seems old (node -v = $(node -v))."
-  warn "If Vite/build fails, install a newer Node (18+ or 20+) and re-run."
+if ! has_cmd npm; then
+  # NodeSource nodejs includes npm, but just in case
+  info "Installing npm..."
+  apt_install npm
 fi
 
 info "Dependencies OK:"
@@ -107,7 +138,7 @@ info "  node:     $(node -v)"
 info "  npm:      $(npm -v)"
 
 # ------------------------
-# 2) Install project dependencies
+# 2) Project dependencies
 # ------------------------
 info "Installing PHP dependencies (composer install)..."
 composer install --no-interaction
@@ -133,7 +164,7 @@ fi
 info "Generating APP_KEY..."
 php artisan key:generate --force
 
-# SQLite DB
+# Ensure SQLite + file cache (avoid DB cache table issues during setup)
 info "Configuring SQLite database..."
 mkdir -p database
 DB_FILE="database/database.sqlite"
@@ -142,27 +173,25 @@ if [[ ! -f "$DB_FILE" ]]; then
   touch "$DB_FILE"
 fi
 
-# Ensure DB config in .env (portable relative path)
-if grep -qE '^DB_CONNECTION=' .env; then
-  sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
-else
-  echo "DB_CONNECTION=sqlite" >> .env
-fi
+set_env_kv "DB_CONNECTION" "sqlite"
+set_env_kv "DB_DATABASE" "${DB_FILE}"
 
-if grep -qE '^DB_DATABASE=' .env; then
-  sed -i "s#^DB_DATABASE=.*#DB_DATABASE=${DB_FILE}#" .env
-else
-  echo "DB_DATABASE=${DB_FILE}" >> .env
-fi
+# Make installer robust even if someone set DB cache in .env
+set_env_kv "CACHE_STORE" "file"
+set_env_kv "SESSION_DRIVER" "file"
 
-info "Clearing caches..."
-php artisan optimize:clear
+# Clear config cache (safe)
+php artisan config:clear >/dev/null 2>&1 || true
+php artisan cache:clear  >/dev/null 2>&1 || true
 
+# ------------------------
+# 4) Migrations
+# ------------------------
 info "Running migrations..."
 php artisan migrate --force
 
 # ------------------------
-# 4) Start servers
+# 5) Start servers
 # ------------------------
 info "Starting PHP dev server on http://127.0.0.1:8000 ..."
 php artisan serve --host=127.0.0.1 --port=8000 >/dev/null 2>&1 &
